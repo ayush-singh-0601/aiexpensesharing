@@ -5,13 +5,14 @@ import { useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-const SplitSelector=({
+
+export function SplitSelector({
   type,
   amount,
   participants,
   paidByUserId,
   onSplitsChange,
-})=> {
+}) {
   const { user } = useUser();
   const [splits, setSplits] = useState([]);
   const [totalPercentage, setTotalPercentage] = useState(0);
@@ -20,7 +21,9 @@ const SplitSelector=({
     if (!amount || amount <= 0 || participants.length === 0) {
       return;
     }
+
     let newSplits = [];
+
     if (type === "equal") {
       const shareAmount = amount / participants.length;
       newSplits = participants.map((participant) => ({
@@ -55,6 +58,7 @@ const SplitSelector=({
         paid: participant.id === paidByUserId,
       }));
     }
+
     setSplits(newSplits);
     const newTotalAmount = newSplits.reduce(
       (sum, split) => sum + split.amount,
@@ -64,13 +68,13 @@ const SplitSelector=({
       (sum, split) => sum + split.percentage,
       0
     );
+
     setTotalAmount(newTotalAmount);
     setTotalPercentage(newTotalPercentage);
     if (onSplitsChange) {
       onSplitsChange(newSplits);
     }
   }, [type, amount, participants, paidByUserId, onSplitsChange]);
-
   const updatePercentageSplit = (userId, newPercentage) => {
     const updatedSplits = splits.map((split) => {
       if (split.userId === userId) {
@@ -82,6 +86,7 @@ const SplitSelector=({
       }
       return split;
     });
+
     setSplits(updatedSplits);
     const newTotalAmount = updatedSplits.reduce(
       (sum, split) => sum + split.amount,
@@ -91,6 +96,7 @@ const SplitSelector=({
       (sum, split) => sum + split.percentage,
       0
     );
+
     setTotalAmount(newTotalAmount);
     setTotalPercentage(newTotalPercentage);
     if (onSplitsChange) {
@@ -109,6 +115,7 @@ const SplitSelector=({
       }
       return split;
     });
+
     setSplits(updatedSplits);
     const newTotalAmount = updatedSplits.reduce(
       (sum, split) => sum + split.amount,
@@ -118,6 +125,7 @@ const SplitSelector=({
       (sum, split) => sum + split.percentage,
       0
     );
+
     setTotalAmount(newTotalAmount);
     setTotalPercentage(newTotalPercentage);
     if (onSplitsChange) {
@@ -126,6 +134,7 @@ const SplitSelector=({
   };
   const isPercentageValid = Math.abs(totalPercentage - 100) < 0.01;
   const isAmountValid = Math.abs(totalAmount - amount) < 0.01;
+
   return (
     <div className="space-y-4 mt-4">
       {splits.map((split) => (
@@ -142,11 +151,13 @@ const SplitSelector=({
               {split.userId === user?.id ? "You" : split.name}
             </span>
           </div>
+
           {type === "equal" && (
             <div className="text-right text-sm">
-              ${split.amount.toFixed(2)} ({split.percentage.toFixed(1)}%)
+              ₹{split.amount.toFixed(2)} ({split.percentage.toFixed(1)}%)
             </div>
           )}
+
           {type === "percentage" && (
             <div className="flex items-center gap-4 flex-1">
               <Slider
@@ -174,15 +185,16 @@ const SplitSelector=({
                   className="w-16 h-8"
                 />
                 <span className="text-sm text-muted-foreground">%</span>
-                <span className="text-sm ml-1">${split.amount.toFixed(2)}</span>
+                <span className="text-sm ml-1">₹{split.amount.toFixed(2)}</span>
               </div>
             </div>
           )}
+
           {type === "exact" && (
             <div className="flex items-center gap-2 flex-1">
               <div className="flex-1"></div>
               <div className="flex gap-1 items-center">
-                <span className="text-sm text-muted-foreground">$</span>
+                <span className="text-sm text-muted-foreground">₹</span>
                 <Input
                   type="number"
                   min="0"
@@ -208,7 +220,7 @@ const SplitSelector=({
           <span
             className={`font-medium ${!isAmountValid ? "text-amber-600" : ""}`}
           >
-            ${totalAmount.toFixed(2)}
+            ₹{totalAmount.toFixed(2)}
           </span>
           {type !== "equal" && (
             <span
@@ -224,13 +236,13 @@ const SplitSelector=({
           The percentages should add up to 100%.
         </div>
       )}
+
       {type === "exact" && !isAmountValid && (
         <div className="text-sm text-amber-600 mt-2">
           The sum of all splits (${totalAmount.toFixed(2)}) should equal the
-          total amount (${amount.toFixed(2)}).
+          total amount (₹{amount.toFixed(2)}).
         </div>
       )}
     </div>
   );
 }
-export default SplitSelector;

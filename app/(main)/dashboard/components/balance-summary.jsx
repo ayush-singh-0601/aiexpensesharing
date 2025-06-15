@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 
-const  BalanceSummary =({ balances })=> {
+export function BalanceSummary({ balances }) {
   if (!balances) return null;
 
   const { oweDetails } = balances;
@@ -38,7 +38,7 @@ const  BalanceSummary =({ balances })=> {
                   <span className="text-sm">{item.name}</span>
                 </div>
                 <span className="font-medium text-green-600">
-                  ${item.amount.toFixed(2)}
+                  ₹{item.amount.toFixed(2)}
                 </span>
               </Link>
             ))}
@@ -67,7 +67,7 @@ const  BalanceSummary =({ balances })=> {
                   <span className="text-sm">{item.name}</span>
                 </div>
                 <span className="font-medium text-red-600">
-                  ${item.amount.toFixed(2)}
+                  ₹{item.amount.toFixed(2)}
                 </span>
               </Link>
             ))}
@@ -77,4 +77,3 @@ const  BalanceSummary =({ balances })=> {
     </div>
   );
 }
-export default BalanceSummary;

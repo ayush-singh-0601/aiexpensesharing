@@ -1,20 +1,14 @@
 import { query } from "./_generated/server";
 import { internal } from "./_generated/api";
-
 export const getUserBalances = query({
   handler: async (ctx) => {
-    
     const user = await ctx.runQuery(internal.users.getCurrentUser);
-
-
     const expenses = (await ctx.db.query("expenses").collect()).filter(
       (e) =>
         !e.groupId && 
         (e.paidByUserId === user._id ||
           e.splits.some((s) => s.userId === user._id))
     );
-
-    
     let youOwe = 0;
     let youAreOwed = 0;
     const balanceByUser = {};
@@ -35,7 +29,6 @@ export const getUserBalances = query({
           mySplit.amount;
       }
     }
-
     const settlements = (await ctx.db.query("settlements").collect()).filter(
       (s) =>
         !s.groupId &&
@@ -53,8 +46,6 @@ export const getUserBalances = query({
           s.amount;
       }
     }
-
-    
     const youOweList = [];
     const youAreOwedByList = [];
     for (const [uid, { owed, owing }] of Object.entries(balanceByUser)) {
@@ -81,30 +72,20 @@ export const getUserBalances = query({
     };
   },
 });
-
-
 export const getTotalSpent = query({
   handler: async (ctx) => {
     const user = await ctx.runQuery(internal.users.getCurrentUser);
-
-  
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1).getTime();
-
-   
     const expenses = await ctx.db
       .query("expenses")
       .withIndex("by_date", (q) => q.gte("date", startOfYear))
       .collect();
-
-  
     const userExpenses = expenses.filter(
       (expense) =>
         expense.paidByUserId === user._id ||
         expense.splits.some((split) => split.userId === user._id)
     );
-
-   
     let totalSpent = 0;
 
     userExpenses.forEach((expense) => {
@@ -119,38 +100,25 @@ export const getTotalSpent = query({
     return totalSpent;
   },
 });
-
-
 export const getMonthlySpending = query({
   handler: async (ctx) => {
     const user = await ctx.runQuery(internal.users.getCurrentUser);
-
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1).getTime();
-
-   
     const allExpenses = await ctx.db
       .query("expenses")
       .withIndex("by_date", (q) => q.gte("date", startOfYear))
       .collect();
-
-   
     const userExpenses = allExpenses.filter(
       (expense) =>
         expense.paidByUserId === user._id ||
         expense.splits.some((split) => split.userId === user._id)
     );
-
-   
     const monthlyTotals = {};
-
-   
     for (let i = 0; i < 12; i++) {
       const monthDate = new Date(currentYear, i, 1);
       monthlyTotals[monthDate.getTime()] = 0;
     }
-
-   
     userExpenses.forEach((expense) => {
       const date = new Date(expense.date);
       const monthStart = new Date(
@@ -158,7 +126,6 @@ export const getMonthlySpending = query({
         date.getMonth(),
         1
       ).getTime();
-
       const userSplit = expense.splits.find(
         (split) => split.userId === user._id
       );
@@ -167,35 +134,25 @@ export const getMonthlySpending = query({
           (monthlyTotals[monthStart] || 0) + userSplit.amount;
       }
     });
-
     const result = Object.entries(monthlyTotals).map(([month, total]) => ({
       month: parseInt(month),
       total,
     }));
 
-  
     result.sort((a, b) => a.month - b.month);
 
     return result;
   },
 });
-
-
 export const getUserGroups = query({
   handler: async (ctx) => {
     const user = await ctx.runQuery(internal.users.getCurrentUser);
-
-  
     const allGroups = await ctx.db.query("groups").collect();
-
     const groups = allGroups.filter((group) =>
       group.members.some((member) => member.userId === user._id)
     );
-
-  
     const enhancedGroups = await Promise.all(
       groups.map(async (group) => {
-      
         const expenses = await ctx.db
           .query("expenses")
           .withIndex("by_group", (q) => q.eq("groupId", group._id))
@@ -205,14 +162,12 @@ export const getUserGroups = query({
 
         expenses.forEach((expense) => {
           if (expense.paidByUserId === user._id) {
-       
             expense.splits.forEach((split) => {
               if (split.userId !== user._id && !split.paid) {
                 balance += split.amount;
               }
             });
           } else {
-           
             const userSplit = expense.splits.find(
               (split) => split.userId === user._id
             );
@@ -221,8 +176,6 @@ export const getUserGroups = query({
             }
           }
         });
-
-        
         const settlements = await ctx.db
           .query("settlements")
           .filter((q) =>
@@ -238,10 +191,8 @@ export const getUserGroups = query({
 
         settlements.forEach((settlement) => {
           if (settlement.paidByUserId === user._id) {
-    
             balance += settlement.amount;
           } else {
-           
             balance -= settlement.amount;
           }
         });

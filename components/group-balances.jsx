@@ -4,22 +4,8 @@ import { useConvexQuery } from "@/hooks/use-convex-query";
 import { api } from "@/convex/_generated/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
-
-/**
- * Expected `balances` shape (one object per member):
- * {
- *   id:           string;           // user id
- *   name:         string;
- *   imageUrl?:    string;
- *   totalBalance: number;           // + ve ⇒ they are owed, – ve ⇒ they owe
- *   owes:   { to: string;   amount: number }[];  // this member → others
- *   owedBy: { from: string; amount: number }[];  // others → this member
- * }
- */
 export function GroupBalances({ balances }) {
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
-
-  /* ───── guards ────────────────────────────────────────────────────────── */
   if (!balances?.length || !currentUser) {
     return (
       <div className="text-center py-4 text-muted-foreground">
@@ -27,8 +13,6 @@ export function GroupBalances({ balances }) {
       </div>
     );
   }
-
-  /* ───── helpers ───────────────────────────────────────────────────────── */
   const me = balances.find((b) => b.id === currentUser._id);
   if (!me) {
     return (
@@ -39,13 +23,9 @@ export function GroupBalances({ balances }) {
   }
 
   const userMap = Object.fromEntries(balances.map((b) => [b.id, b]));
-
-  // Who owes me?
   const owedByMembers = me.owedBy
     .map(({ from, amount }) => ({ ...userMap[from], amount }))
     .sort((a, b) => b.amount - a.amount);
-
-  // Whom do I owe?
   const owingToMembers = me.owes
     .map(({ to, amount }) => ({ ...userMap[to], amount }))
     .sort((a, b) => b.amount - a.amount);
@@ -54,11 +34,8 @@ export function GroupBalances({ balances }) {
     me.totalBalance === 0 &&
     owedByMembers.length === 0 &&
     owingToMembers.length === 0;
-
-  /* ───── UI ────────────────────────────────────────────────────────────── */
   return (
     <div className="space-y-4">
-      {/* Current user's total balance */}
       <div className="text-center pb-4 border-b">
         <p className="text-sm text-muted-foreground mb-1">Your balance</p>
         <p
@@ -91,7 +68,6 @@ export function GroupBalances({ balances }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* People who owe the current user */}
           {owedByMembers.length > 0 && (
             <div>
               <h3 className="text-sm font-medium flex items-center mb-3">
@@ -121,8 +97,6 @@ export function GroupBalances({ balances }) {
               </div>
             </div>
           )}
-
-          {/* People the current user owes */}
           {owingToMembers.length > 0 && (
             <div>
               <h3 className="text-sm font-medium flex items-center mb-3">

@@ -9,11 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeftRight } from "lucide-react";
 import Link from "next/link";
 
-const  SettlementList=({
+export function SettlementList({
   settlements,
   isGroupSettlement = false,
   userLookupMap,
-})=> {
+}) {
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
   console.log("settlements", settlements);
 
@@ -26,10 +26,7 @@ const  SettlementList=({
       </Card>
     );
   }
-
-  // Helper to get user details from cache or look up
   const getUserDetails = (userId) => {
-    // Simplified fallback
     return {
       name:
         userId === currentUser?._id
@@ -57,7 +54,6 @@ const  SettlementList=({
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {/* Settlement icon */}
                   <div className="bg-primary/10 p-2 rounded-full">
                     <ArrowLeftRight className="h-5 w-5 text-primary" />
                   </div>
@@ -112,4 +108,3 @@ const  SettlementList=({
     </div>
   );
 }
-export default SettlementList;

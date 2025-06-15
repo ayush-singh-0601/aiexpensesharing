@@ -1,14 +1,8 @@
-// convex/seed.js
-import { mutation } from "./_generated/server";
 
-/**
- * Seed database with dummy data using your existing users
- * Run with: npx convex run seed:seedDatabase
- */
+import { mutation } from "./_generated/server";
 export const seedDatabase = mutation({
   args: {},
   handler: async (ctx) => {
-    // Check if database already has data to avoid duplicate seeding
     const existingExpenses = await ctx.db.query("expenses").collect();
     if (existingExpenses.length > 0) {
       console.log("Database already has expenses. Skipping seed.");
@@ -17,8 +11,6 @@ export const seedDatabase = mutation({
         existingExpenses: existingExpenses.length,
       };
     }
-
-    // Step 1: Get your existing users
     const users = await ctx.db.query("users").collect();
 
     if (users.length < 3) {
@@ -30,17 +22,10 @@ export const seedDatabase = mutation({
         reason: "Not enough users",
       };
     }
-
-    // Step 2: Create groups
     const groups = await createGroups(ctx, users);
-
-    // Step 3: Create 1-on-1 expenses
     const oneOnOneExpenses = await createOneOnOneExpenses(ctx, users);
 
-    // Step 4: Create group expenses
     const groupExpenses = await createGroupExpenses(ctx, users, groups);
-
-    // Step 5: Create settlements
     const settlements = await createSettlements(
       ctx,
       users,
@@ -61,12 +46,9 @@ export const seedDatabase = mutation({
     };
   },
 });
-
-// Helper to create groups
 async function createGroups(ctx, users) {
   const now = Date.now();
 
-  // Using the users from your database
   const user1 = users[0]; 
   const user2 = users[1]; 
   const user3 = users[2]; 
@@ -108,8 +90,6 @@ async function createGroups(ctx, users) {
     const groupId = await ctx.db.insert("groups", groupData);
     groupIds.push(groupId);
   }
-
-  // Fetch all groups with their IDs
   return await Promise.all(
     groupIds.map(async (id) => {
       const group = await ctx.db.get(id);
@@ -117,15 +97,11 @@ async function createGroups(ctx, users) {
     })
   );
 }
-
-// Helper to create one-on-one expenses
 async function createOneOnOneExpenses(ctx, users) {
   const now = Date.now();
   const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
   const twoWeeksAgo = now - 14 * 24 * 60 * 60 * 1000;
   const oneMonthAgo = now - 30 * 24 * 60 * 60 * 1000;
-
-  // Using the users from your database
   const user1 = users[0];
   const user2 = users[1];
   const user3 = users[2];
@@ -134,7 +110,7 @@ async function createOneOnOneExpenses(ctx, users) {
     {
       description: "Dinner at Indian Restaurant",
       amount: 1250.0,
-      category: "foodDrink", // Using ID from expense-categories.js
+      category: "foodDrink", 
       date: twoWeeksAgo,
       paidByUserId: user1._id,
       splitType: "equal",
@@ -268,7 +244,7 @@ async function createGroupExpenses(ctx, users, groups) {
         { userId: user2._id, amount: 1500.0, paid: false },
         { userId: user3._id, amount: 1500.0, paid: true },
       ],
-      groupId: groups[0]._id, // Weekend Trip Group
+      groupId: groups[0]._id, 
       createdBy: user3._id,
     },
   ];
@@ -408,32 +384,35 @@ async function createSettlements(
   );
 
   const settlementDatas = [
+    // Settlement for cab ride
     {
-      amount: 225.0,
+      amount: 225.0, // Amount user1 owes to user2
       note: "For cab ride",
       date: fiveDaysAgo,
-      paidByUserId: user1._id,
-      receivedByUserId: user2._id, // <-- FIXED spelling here
+      paidByUserId: user1._id, // User1 pays
+      receivedByUserId: user2._id, // User2 receives
       relatedExpenseIds: cabExpense ? [cabExpense._id] : undefined,
       createdBy: user1._id,
     },
+    // Settlement for hotel
     {
-      amount: 3166.67,
+      amount: 3166.67, // Amount user2 owes to user1
       note: "Hotel payment",
       date: threeDaysAgo,
-      paidByUserId: user2._id,
-      receivedByUserId: user1._id, // <-- FIXED spelling here
-      groupId: groups[0]._id,
+      paidByUserId: user2._id, // User2 pays
+      receivedByUserId: user1._id, // User1 receives
+      groupId: groups[0]._id, // Weekend Trip Group
       relatedExpenseIds: hotelExpense ? [hotelExpense._id] : undefined,
       createdBy: user2._id,
     },
+    // Settlement for office coffee
     {
-      amount: 425.0,
+      amount: 425.0, // Amount user3 owes to user2
       note: "Office coffee",
       date: now - 1 * 24 * 60 * 60 * 1000,
-      paidByUserId: user3._id,
-      receivedByUserId: user2._id, // <-- FIXED spelling here
-      groupId: groups[1]._id,
+      paidByUserId: user3._id, // User3 pays
+      receivedByUserId: user2._id, // User2 receives
+      groupId: groups[1]._id, // Office Expenses Group
       relatedExpenseIds: coffeeExpense ? [coffeeExpense._id] : undefined,
       createdBy: user3._id,
     },

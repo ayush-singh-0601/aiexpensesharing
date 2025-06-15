@@ -9,30 +9,29 @@ export const store = mutation({
     if (!identity) {
       throw new Error("Called storeUser without authentication present");
     }
-
-   
     const user = await ctx.db
       .query("users")
       .withIndex("by_token", (q) =>
         q.eq("tokenIdentifier", identity.tokenIdentifier)
       )
       .unique();
+
     if (user !== null) {
-     
-      if (user.name !== identity.name) {
+      if (user.name !== identity.name && identity.name) {
         await ctx.db.patch(user._id, { name: identity.name });
       }
       return user._id;
     }
-   
+
     return await ctx.db.insert("users", {
-      name: identity.name ?? "Anonymous",
+      name: identity.name ?? "Anonymous", 
       tokenIdentifier: identity.tokenIdentifier,
-      email: identity.email,
-      imageUrl: identity.pictureUrl,
+      email: identity.email ?? null,
+      imageUrl: identity.pictureUrl ?? null,
     });
   },
 });
+
 
 export const getCurrentUser = query({
   handler: async (ctx) => {
@@ -56,38 +55,29 @@ export const getCurrentUser = query({
   },
 });
 
-
 export const searchUsers = query({
   args: {
     query: v.string(),
   },
   handler: async (ctx, args) => {
-
     const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
-
     if (args.query.length < 2) {
       return [];
     }
-
     const nameResults = await ctx.db
       .query("users")
       .withSearchIndex("search_name", (q) => q.search("name", args.query))
       .collect();
-
-
     const emailResults = await ctx.db
       .query("users")
       .withSearchIndex("search_email", (q) => q.search("email", args.query))
       .collect();
-
-
     const users = [
       ...nameResults,
       ...emailResults.filter(
         (email) => !nameResults.some((name) => name._id === email._id)
       ),
     ];
-
     return users
       .filter((user) => user._id !== currentUser._id)
       .map((user) => ({

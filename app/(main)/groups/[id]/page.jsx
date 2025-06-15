@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, ArrowLeftRight, ArrowLeft, Users } from "lucide-react";
-import  ExpenseList  from "@/components/expense-list";
-import  SettlementList  from "@/components/settlements-list";
+import { ExpenseList } from "@/components/expense-list";
+import { SettlementList } from "@/components/settlement-list";
 import { GroupBalances } from "@/components/group-balances";
 import { GroupMembers } from "@/components/group-members";
 
@@ -82,8 +82,6 @@ export default function GroupExpensesPage() {
           </div>
         </div>
       </div>
-
-      {/* Grid layout for group details */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-2">
           <Card>
@@ -107,8 +105,6 @@ export default function GroupExpensesPage() {
           </Card>
         </div>
       </div>
-
-      {/* Tabs for expenses and settlements */}
       <Tabs
         defaultValue="expenses"
         value={activeTab}

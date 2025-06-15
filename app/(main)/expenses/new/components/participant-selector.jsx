@@ -22,33 +22,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-const  ParticipantSelector=({ participants, onParticipantsChange })=> {
+export function ParticipantSelector({ participants, onParticipantsChange }) {
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-
   const { data: searchResults, isLoading } = useConvexQuery(
     api.users.searchUsers,
     { query: searchQuery }
   );
-
- 
   const addParticipant = (user) => {
-
     if (participants.some((p) => p.id === user.id)) {
       return;
     }
-
-
     onParticipantsChange([...participants, user]);
     setOpen(false);
     setSearchQuery("");
   };
-
-  
   const removeParticipant = (userId) => {
- 
     if (userId === currentUser._id) {
       return;
     }
@@ -157,4 +147,3 @@ const  ParticipantSelector=({ participants, onParticipantsChange })=> {
     </div>
   );
 }
-export default ParticipantSelector;

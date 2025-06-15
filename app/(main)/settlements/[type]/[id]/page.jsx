@@ -30,10 +30,7 @@ export default function SettlementPage() {
       </div>
     );
   }
-
-  // Function to handle after successful settlement creation
   const handleSuccess = () => {
-    // Redirect based on type
     if (type === "user") {
       router.push(`/person/${id}`);
     } else if (type === "group") {

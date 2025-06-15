@@ -12,13 +12,13 @@ import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const ExpenseList=({
+export function ExpenseList({
   expenses,
   showOtherPerson = true,
   isGroupExpense = false,
   otherPersonId = null,
   userLookupMap = {},
-})=> {
+}) {
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
   const deleteExpense = useConvexMutation(api.expenses.deleteExpense);
 
@@ -31,10 +31,7 @@ const ExpenseList=({
       </Card>
     );
   }
-
-  
   const getUserDetails = (userId) => {
- 
     return {
       name:
         userId === currentUser?._id
@@ -51,9 +48,7 @@ const ExpenseList=({
       expense.paidByUserId === currentUser._id
     );
   };
-
   const handleDeleteExpense = async (expense) => {
-  
     const confirmed = window.confirm(
       "Are you sure you want to delete this expense? This action cannot be undone."
     );
@@ -85,7 +80,6 @@ const ExpenseList=({
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-               
                   <div className="bg-primary/10 p-2 rounded-full">
                     <CategoryIcon className="h-5 w-5 text-primary" />
                   </div>
@@ -143,8 +137,6 @@ const ExpenseList=({
                   )}
                 </div>
               </div>
-
-              
               <div className="mt-3 text-sm">
                 <div className="flex gap-2 flex-wrap">
                   {expense.splits.map((split, idx) => {
@@ -186,4 +178,3 @@ const ExpenseList=({
     </div>
   );
 }
-export default ExpenseList;

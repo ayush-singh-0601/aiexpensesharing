@@ -7,10 +7,8 @@ export const getGroupOrMembers = query({
     groupId: v.optional(v.id("groups")), 
   },
   handler: async (ctx, args) => {
-   
+ 
     const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
-
-    
     const allGroups = await ctx.db.query("groups").collect();
     const userGroups = allGroups.filter((group) =>
       group.members.some((member) => member.userId === currentUser._id)
@@ -24,7 +22,6 @@ export const getGroupOrMembers = query({
         throw new Error("Group not found or you're not a member");
       }
 
-   
       const memberDetails = await Promise.all(
         selectedGroup.members.map(async (member) => {
           const user = await ctx.db.get(member.userId);
@@ -40,10 +37,8 @@ export const getGroupOrMembers = query({
         })
       );
 
-      
       const validMembers = memberDetails.filter((member) => member !== null);
 
-      
       return {
         selectedGroup: {
           id: selectedGroup._id,
@@ -60,7 +55,7 @@ export const getGroupOrMembers = query({
         })),
       };
     } else {
-     
+
       return {
         selectedGroup: null,
         groups: userGroups.map((group) => ({
@@ -78,14 +73,13 @@ export const getGroupOrMembers = query({
 export const getGroupExpenses = query({
   args: { groupId: v.id("groups") },
   handler: async (ctx, { groupId }) => {
-
     const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
 
     const group = await ctx.db.get(groupId);
-    if (!group) throw new Error(`Group not found: ${groupId}`);
+    if (!group) throw new Error("Group not found");
 
     if (!group.members.some((m) => m.userId === currentUser._id))
-      throw new Error(`User ${currentUser._id} is not a member of group ${groupId}`);
+      throw new Error("You are not a member of this group");
 
     const expenses = await ctx.db
       .query("expenses")
@@ -96,8 +90,6 @@ export const getGroupExpenses = query({
       .query("settlements")
       .filter((q) => q.eq(q.field("groupId"), groupId))
       .collect();
-
-  
     const memberDetails = await Promise.all(
       group.members.map(async (m) => {
         const u = await ctx.db.get(m.userId);
@@ -105,11 +97,7 @@ export const getGroupExpenses = query({
       })
     );
     const ids = memberDetails.map((m) => m.id);
-
-   
-
     const totals = Object.fromEntries(ids.map((id) => [id, 0]));
-
     const ledger = {};
     ids.forEach((a) => {
       ledger[a] = {};
@@ -117,7 +105,6 @@ export const getGroupExpenses = query({
         if (a !== b) ledger[a][b] = 0;
       });
     });
-
     for (const exp of expenses) {
       const payer = exp.paidByUserId;
       for (const split of exp.splits) {
@@ -131,8 +118,6 @@ export const getGroupExpenses = query({
         ledger[debtor][payer] += amt; 
       }
     }
-
-
     for (const s of settlements) {
       totals[s.paidByUserId] += s.amount;
       totals[s.receivedByUserId] -= s.amount;
@@ -140,10 +125,9 @@ export const getGroupExpenses = query({
       ledger[s.paidByUserId][s.receivedByUserId] -= s.amount; 
     }
 
-   
     ids.forEach((a) => {
       ids.forEach((b) => {
-        if (a >= b) return;
+        if (a >= b) return; 
         const diff = ledger[a][b] - ledger[b][a];
         if (diff > 0) {
           ledger[a][b] = diff;
@@ -156,8 +140,6 @@ export const getGroupExpenses = query({
         }
       });
     });
-
-
     const balances = memberDetails.map((m) => ({
       ...m,
       totalBalance: totals[m.id],
